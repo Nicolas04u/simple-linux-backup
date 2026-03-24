@@ -40,4 +40,3 @@ Before running the script, ensure you have:
 **Developed by [Nicolas Schirosi]**
 *Freelance Linux SysAdmin based in Pisa (IT), relocating to Prague (CZ).*
 *Currently studying for RHCSA certification.*
-[Inserisci qui il link al tuo LinkedIn se ce l'hai, altrimenti cancella questa riga]
