@@ -10,16 +10,6 @@
 set -e
 set -o pipefail
 
-cleanup() {
-    local exit_code=$?
-    rm -f "${STAGING_DIR}/db_dump_${TIMESTAMP}.sql"
-    if [ $exit_code -ne 0 ]; then
-        echo "[$(date +'%Y-%m-%d %H:%M:%S')] [ERRORE] Backup fallito con codice ${exit_code}" | \
-            mail -s "[BACKUP FAIL] ${CLIENT_ID} - $(date +'%Y-%m-%d')" "${ALERT_EMAIL}"
-    fi
-}
-trap cleanup EXIT
-
 # --- 1. CONFIGURAZIONE ---
 CLIENT_ID="cliente_acme"
 TIMESTAMP=$(date +%Y-%m-%d_%H%M)
@@ -31,16 +21,27 @@ ALERT_EMAIL="tua@email.com"
 DB_NAME="db_cliente"
 # NOTA: Le credenziali DB devono stare in ~/.my.cnf dell'utente che lancia lo script
 
-# --- 2. PREPARAZIONE ---
+# --- 2. TRAP: CLEANUP E ALERTING SU EXIT ---
+cleanup() {
+    local exit_code=$?
+    rm -f "${STAGING_DIR}/db_dump_${TIMESTAMP}.sql"
+    if [ $exit_code -ne 0 ]; then
+        echo "[$(date +'%Y-%m-%d %H:%M:%S')] [ERRORE] Backup fallito con codice ${exit_code}" | \
+            mail -s "[BACKUP FAIL] ${CLIENT_ID} - $(date +'%Y-%m-%d')" "${ALERT_EMAIL}"
+    fi
+}
+trap cleanup EXIT
+
+# --- 3. PREPARAZIONE ---
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] Avvio procedura di backup per ${CLIENT_ID}..."
 mkdir -p "${STAGING_DIR}"
 
-# --- 3. DUMP DEL DATABASE ---
+# --- 4. DUMP DEL DATABASE ---
 echo "[*] Esecuzione dump del database: ${DB_NAME}..."
 # --single-transaction garantisce consistenza senza lockare le tabelle InnoDB
 mysqldump --single-transaction "${DB_NAME}" > "${STAGING_DIR}/db_dump_${TIMESTAMP}.sql"
 
-# --- 4. CREAZIONE ARCHIVIO COMPRESSO ---
+# --- 5. CREAZIONE ARCHIVIO COMPRESSO ---
 echo "[*] Compressione dei file web e del database..."
 ARCHIVE_NAME="full_backup_${TIMESTAMP}.tar.gz"
 
@@ -50,7 +51,7 @@ tar -czf "${STAGING_DIR}/${ARCHIVE_NAME}" \
     -C "${STAGING_DIR}" "./db_dump_${TIMESTAMP}.sql"
 tar -tzf "${STAGING_DIR}/${ARCHIVE_NAME}" > /dev/null
 
-# --- 5. SINCRONIZZAZIONE REMOTA ---
+# --- 6. SINCRONIZZAZIONE REMOTA ---
 echo "[*] Trasferimento sicuro al server di storage..."
 # -a (archive), -v (verbose), -z (compress in transit), -e (specifica SSH)
 rsync -avz -e "ssh -o StrictHostKeyChecking=yes" "${STAGING_DIR}/${ARCHIVE_NAME}" "${REMOTE_DEST}"
@@ -58,7 +59,7 @@ rsync -avz -e "ssh -o StrictHostKeyChecking=yes" "${STAGING_DIR}/${ARCHIVE_NAME}
 ssh "${REMOTE_HOST}" \
     "find /home/backup_user/storage/${CLIENT_ID}/ -type f -name '*.tar.gz' -mtime +7 -delete"
 
-# --- 6. ROTAZIONE (RETENTION POLICY LOCALE) ---
+# --- 7. ROTAZIONE (RETENTION POLICY LOCALE) ---
 echo "[*] Pulizia dei backup locali più vecchi di 7 giorni..."
 find "${STAGING_DIR}" -type f -name "*.tar.gz" -mtime +7 -exec rm -f {} \;
 
