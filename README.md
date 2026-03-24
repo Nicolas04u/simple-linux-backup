@@ -23,7 +23,7 @@ Before running the script, ensure you have:
 
 1.  **Clone the script:**
     ```bash
-    curl -O https://github.com/Nicolas04/simple-linux/backup_stack.sh
+    curl -O https://raw.githubusercontent.com/Nicolas04u/simple-linux-backup/refs/heads/main/backup_stack.sh
     ```
 2.  **Make it executable:**
     ```bash
@@ -37,7 +37,7 @@ Before running the script, ensure you have:
 5.  **Automate:** Add to crontab for daily execution.
 
 ---
-**Developed by [IL TUO NOME E COGNOME]**
+**Developed by [Nicolas Schirosi]**
 *Freelance Linux SysAdmin based in Pisa (IT), relocating to Prague (CZ).*
 *Currently studying for RHCSA certification.*
 [Inserisci qui il link al tuo LinkedIn se ce l'hai, altrimenti cancella questa riga]
