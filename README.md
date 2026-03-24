@@ -37,6 +37,6 @@ Before running the script, ensure you have:
 5.  **Automate:** Add to crontab for daily execution.
 
 ---
-**Developed by [Nicolas Schirosi]**
+**Developed by Nicolas Schirosi**
 *Freelance Linux SysAdmin based in Pisa (IT), relocating to Prague (CZ).*
 *Currently studying for RHCSA certification.*
